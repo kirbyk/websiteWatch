@@ -1,14 +1,15 @@
 {
- "manifest_version": 2,
- "name": "websiteWatch",
- "description": "Block pages that you don't want to be able to visit after a certain threshold.",
- "version": "1",
- "author": "Collin Wen",
-"browser_action": {
-   "default_title": "Have a good day"
- },
-"chrome_url_overrides" : {
-  "newtab": "newtab.html"
-},
- "permissions": ["activeTab"]
+  "manifest_version": 2,
+  "name": "websiteWatch",
+  "description": "Block pages that you don't want to be able to visit after a certain threshold.",
+  "version": "1",
+  "author": "Collin Wen",
+  "browser_action": {
+    "default_title": "Have a good day"
+  },
+  "chrome_url_overrides" : {
+    "newtab": "newtab.html"
+  },
+  "permissions": ["activeTab"],
+  "content_security_policy": "script-src 'self' s3.amazonaws.com; object-src 'self'"
 }
