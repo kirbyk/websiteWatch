@@ -1,21 +1,24 @@
 <!doctype html>
 <html>
   <head>
-    <title>Test</title>
+    <title>websiteWatch - test</title>
     <script src="stitch.js"></script>
-    <script src="main.js"></script>
   </head>
   <body>
     <h1>websiteWatch</h1>
 
     <form>
-      <label for="website-url">Website URL</label>
-      <input type="text" id="website-url">
+      <!-- <label for="website-url">Website URL</label>
+      <input type="text" id="website-url"> -->
 
       <label for="time-limit">Time Limit (in minutes)</label>
       <input type="number" id="time-limit">
 
-      <button onClick="addWebsite()">Add a website</button>
+      <label for="blacklist">Blacklist</label>
+      <input type="text" id="blacklist">
+
+      <button id="submit-button">Create New User Config</button>
     </form>
+    <script src="main.js"></script>
   </body>
 </html>
