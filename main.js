@@ -1,80 +1,62 @@
-
-// # Direct Interactions
-
-// New User
-//   - Login
-//   - Define a time limit
-//   - Optionally, add entries to blacklist
-//   - Insert a new config document
-// Returning User
-// - Add or remove from blacklist
-
-// # Indirect Interactions
-
-// Page opens
-//   - Check if it's on the blacklist
-//   - if blacklisted:
-//     - Check if time is available
-//     - Start a timer
-// Page closes
-//   - if blacklisted:
-//     - Stop timer
-//     - Submit usage to Stitch
-
-// - Insert/Update website tracker documents // Kirby
-
-// Things to figure out
-//   - How do we know when a page opens/closes
-//     - likely a chrome event system
-//   - How to time things
-
-
+// Connect to MongoDB Stitch
 const client = stitch.Stitch.initializeDefaultAppClient("websitewatch-sypjl");
 
-const db = client
-  .getServiceClient(stitch.RemoteMongoClient.factory, "mongodb-atlas")
-  .db("websiteWatch");
-
+// Connect to the Stitch MongoDB Atlas Service
+const mongodb = client.getServiceClient(stitch.RemoteMongoClient.factory, "mongodb-atlas")
+const db = mongodb.db("websiteWatch");
 const websites = db.collection("websites");
 const config = db.collection("config");
 
-function getCurrentDate() {
-  const now = Date.now()
-  return {
-    day: now.getDay(),
-    month: now.getMonth(),
-    year: now.getFullYear()
-  }
+// Add an onClick listener to our submit button
+document.getElementById("submit-button").addEventListener("click", (e) => {
+  handleFormSubmission();
+  if(e.preventDefault) { e.preventDefault() } else { e.returnValue = false }
+});
+
+async function handleFormSubmission() {
+  const blacklist = document.getElementById("blacklist").value;
+  const timeLimit = document.getElementById("time-limit").value;
+  const formData = { blacklist, timeLimit };
+  const user = await loginAnonymously();
+  await createNewUserConfig(formData, user);
 }
 
-// New User
-
+// Log an anonymous user in
 function loginAnonymously() {
+  if (client.auth.isLoggedIn) {
+    return Promise.resolve(client.auth.user)
+  }
   return client.auth.loginWithCredential(new stitch.AnonymousCredential());
 }
 
-// Form
-async function createNewUserConfig(formData) {
-  const { timeLimit, blacklist } = formData;
-  const user = await loginAnonymously()
-  await config.insertOne({
+// Add a new user configuration document to MongoDB
+function createNewUserConfig(formData, user) {
+  const { blacklist, timeLimit } = formData;
+  return config.insertOne({
     owner_id: user.id,
     blacklist: blacklist,
     timeLimit: timeLimit
   })
 }
+
+
+
+
+// Config setters
 function changeTimeLimit(newTimeLimit) {
   return config.updateOne(
     { owner_id: client.auth.user.id },
     { $set: { timeLimit: newTimeLimit } }
   )
 }
+
 function addToBlacklist(newBlacklistItem) {
   return config.updateOne(
     { owner_id: client.auth.user.id },
     { $push: { blacklist: newBlacklistItem } }
   )
 }
+
 function removeFromBlacklist(removeBlacklistItem) {
   return config.updateOne(
     { owner_id: client.auth.user.id },
@@ -82,41 +64,12 @@ function removeFromBlacklist(removeBlacklistItem) {
   )
 }
 
-
-
-
-
-
-// db
-//   .collection("websites")
-//   .insertOne({
-//     owner_id: user.id,
-//     url: "",
-//     timeSpent: 0, // minutes
-//     date: getCurrentDate()
-//   })
-
-function login() {
-  return client.auth.loginWithCredential(new stitch.AnonymousCredential())
+// Helper functions
+function getCurrentDate() {
+  const now = Date.now();
+  return {
+    day: now.getDay(),
+    month: now.getMonth(),
+    year: now.getFullYear()
+  };
 }
-
-
-login().then(user => {
-  return db.collection("websites").insertOne({
-    owner_id: user.id,
-    url: "",
-    timeSpent: 0, // minutes
-    date: getCurrentDate()
-  })
-).then(() => db
-  .collection("websites")
-  .find({ owner_id: client.auth.user.id }, { limit: 100 })
-  .asArray()
-)
-  .then(docs => {
-    console.log("Found docs", docs);
-    console.log("[MongoDB Stitch] Connected to Stitch");
-  })
-  .catch(err => {
-    console.error(err);
-  });
