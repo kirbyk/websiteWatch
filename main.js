@@ -63,11 +63,16 @@ async function createNewUserConfig(formData) {
     timeLimit: timeLimit
   })
 }
+function changeTimeLimit(newTimeLimit) {
+  return config.updateOne(
+    { owner_id: client.auth.user.id },
+    { $set: { timeLimit: newTimeLimit } }
+  )
+}
 function addToBlacklist(newBlacklistItem) {
   return config.updateOne(
     { owner_id: client.auth.user.id },
-    { $push: { blacklist: newBlacklistItem } },
-    { upsert: true }
+    { $push: { blacklist: newBlacklistItem } }
   )
 }
 function removeFromBlacklist(removeBlacklistItem) {
